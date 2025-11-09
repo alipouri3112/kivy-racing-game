@@ -1,31 +1,56 @@
-[app]
-title = Racing Game
-package.name = racinggame
-package.domain = org.example
+name: Build APK
 
-source.dir = .
-source.include_exts = py,png,jpg,kv,atlas
+on: [push]
 
-version = 0.1
-requirements = python3,kivy==2.3.0
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
 
-[buildozer]
-log_level = 2
+    - name: Get Date
+      id: get-date
+      run: |
+        echo "::set-output name=date::$(/bin/date -u "+%Y%m%d")"
+      shell: bash
 
-android.permissions = INTERNET
-android.api = 30
-android.minapi = 21
-android.ndk = 25b
-android.sdk = 30
-android.gradle_dependencies = 
+    - name: Cache Buildozer global directory
+      uses: actions/cache@v4
+      with:
+        path: ~/.buildozer_global
+        key: buildozer-global-${{ hashFiles('buildozer.spec') }}
 
-[app]
-android.entrypoint = org.kivy.android.PythonActivity
-android.add_src = src/main/python
-android.add_jars = src/main/jars
-android.add_aars = src/main/aars
-android.archs = arm64-v8a, armeabi-v7a
-android.gradle_dependencies = 
-android.enable_androidx = True
-android.add_compile_options = "sourceCompatibility JavaVersion.VERSION_1_8", "targetCompatibility JavaVersion.VERSION_1_8"
-android.enable_jetifier = True
+    - name: Cache Buildozer directory
+      uses: actions/cache@v4
+      with:
+        path: ~/.buildozer
+        key: ${{ runner.os }}-${{ steps.get-date.outputs.date }}-${{ hashFiles('buildozer.spec') }}
+
+    - name: Buildozer dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y git zip unzip python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+        sudo apt install -y libgl1-mesa-dev libgles2-mesa-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
+        sudo apt install -y libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev libmtdev-dev xclip xsel
+
+    - name: Install Python dependencies
+      run: |
+        pip install --upgrade pip setuptools wheel
+        pip install cython==0.29.36
+        pip install buildozer
+
+    - name: Set JAVA_HOME
+      run: |
+        export JAVA_HOME=/usr/lib/jvm/temurin-17-jdk-amd64
+
+    - name: Build APK
+      run: |
+        export JAVA_HOME=/usr/lib/jvm/temurin-17-jdk-amd64
+        buildozer android debug --verbose
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: my-apk
+        path: bin/*.apk
