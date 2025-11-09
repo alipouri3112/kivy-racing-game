@@ -15,20 +15,20 @@ jobs:
 
     - name: Install system dependencies
       run: |
-        sudo apt-get update
-        sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
-        sudo apt-get install -y libgl1-mesa-dev libgles2-mesa-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
+        sudo apt-get update -qq
+        sudo apt-get install -y -qq openjdk-17-jdk-headless git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+        sudo apt-get install -y -qq libgl1-mesa-dev libgles2-mesa-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev libmtdev-dev xclip xsel
 
     - name: Install Python dependencies
       run: |
-        pip install --upgrade pip
+        pip install --upgrade pip setuptools wheel
         pip install cython==0.29.36
         pip install buildozer
 
     - name: Build APK
       run: |
         buildozer init
-        buildozer android debug
+        buildozer android debug --verbose
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
