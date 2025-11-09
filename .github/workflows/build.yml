@@ -4,7 +4,8 @@ on: [push]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04  # Ubuntu 22.04 for better package support
+    timeout-minutes: 60  # Increase timeout for SDK download
     steps:
     - uses: actions/checkout@v4
 
@@ -16,8 +17,9 @@ jobs:
     - name: Install system dependencies
       run: |
         sudo apt-get update -qq
-        sudo apt-get install -y -qq openjdk-17-jdk-headless git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
-        sudo apt-get install -y -qq libgl1-mesa-dev libgles2-mesa-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev libmtdev-dev xclip xsel
+        sudo apt-get install -y -qq --no-install-recommends openjdk-17-jdk-headless git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+        sudo apt-get install -y -qq --no-install-recommends libgl1-mesa-dev libgles2-mesa-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
+        sudo apt-get install -y -qq --no-install-recommends libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev libmtdev-dev xclip xsel
 
     - name: Install Python dependencies
       run: |
@@ -27,11 +29,10 @@ jobs:
 
     - name: Set JAVA_HOME
       run: |
-        export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+        echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> $GITHUB_ENV
 
     - name: Build APK
       run: |
-        export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
         buildozer init
         buildozer android debug --verbose
 
