@@ -4,22 +4,15 @@ on: [push]
 
 jobs:
   build:
-    runs-on: ubuntu-22.04  # Ubuntu 22.04 for better package support
-    timeout-minutes: 60  # Increase timeout for SDK download
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v2
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-
-    - name: Install system dependencies
+    - name: Buildozer dependencies
       run: |
-        sudo apt-get update -qq
-        sudo apt-get install -y -qq --no-install-recommends openjdk-17-jdk-headless git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
-        sudo apt-get install -y -qq --no-install-recommends libgl1-mesa-dev libgles2-mesa-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
-        sudo apt-get install -y -qq --no-install-recommends libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev libmtdev-dev xclip xsel
+        sudo apt update
+        sudo apt install -y git zip unzip python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
 
     - name: Install Python dependencies
       run: |
@@ -29,11 +22,11 @@ jobs:
 
     - name: Set JAVA_HOME
       run: |
-        echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> $GITHUB_ENV
+        export JAVA_HOME=/usr/lib/jvm/temurin-17-jdk-amd64
 
     - name: Build APK
       run: |
-        buildozer init
+        export JAVA_HOME=/usr/lib/jvm/temurin-17-jdk-amd64
         buildozer android debug --verbose
 
     - name: Upload APK
